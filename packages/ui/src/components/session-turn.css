@@ -43,6 +43,19 @@
     align-self: stretch;
   }
 
+  [data-component="session-turn-separator"] {
+    width: 100%;
+    min-width: 0;
+    align-self: stretch;
+    padding: 8px 0 12px;
+  }
+
+  [data-slot="session-turn-separator-line"] {
+    width: 100%;
+    height: 1px;
+    background: var(--border-weaker-base);
+  }
+
   [data-slot="session-turn-thinking"] {
     display: flex;
     align-items: center;

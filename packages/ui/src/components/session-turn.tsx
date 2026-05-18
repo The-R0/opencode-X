@@ -121,6 +121,14 @@ function clean(value: string) {
     .trim()
 }
 
+function SessionTurnSeparator() {
+  return (
+    <div data-component="session-turn-separator" aria-hidden="true">
+      <div data-slot="session-turn-separator-line" />
+    </div>
+  )
+}
+
 function heading(text: string) {
   const markdown = text.replace(/\r\n?/g, "\n")
 
@@ -404,6 +412,9 @@ export function SessionTurn(
                 <div data-slot="session-turn-compaction">
                   <MessageDivider label={divider()} />
                 </div>
+              </Show>
+              <Show when={!divider() && (assistantMessages().length > 0 || working())}>
+                <SessionTurnSeparator />
               </Show>
               <Show when={assistantMessages().length > 0}>
                 <div data-slot="session-turn-assistant-content" aria-hidden={working()}>

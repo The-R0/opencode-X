@@ -8,6 +8,73 @@
 }
 
 @layer components {
+  [data-component="sidebar-hierarchy"] {
+    scrollbar-gutter: stable;
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-large);
+  }
+
+  [data-component="sidebar-project-block"] {
+    contain: layout style;
+  }
+
+  [data-component="sidebar-hierarchy"] [data-component="sidebar-project-block"]:first-child [data-action="project-switch"] {
+    margin-top: 0;
+  }
+
+  /* Flat selection: no elevation shadow in the hierarchy sidebar */
+  [data-component="sidebar-hierarchy"] [data-action="project-switch"],
+  [data-component="sidebar-hierarchy"] .group\/session,
+  [data-component="sidebar-hierarchy"] .group\/session a {
+    box-shadow: none;
+  }
+
+  html[data-theme="codex"] [data-component="sidebar-hierarchy"] [data-action="project-switch"],
+  html[data-theme="codex"] [data-component="sidebar-hierarchy"] .group\/session,
+  html[data-theme="codex"] [data-component="sidebar-hierarchy"] .group\/session a {
+    box-shadow: none;
+  }
+
+  /* Chat / markdown — compact type rhythm (all themes) */
+  [data-component="assistant-message"],
+  [data-component="user-message"] {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-large);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  [data-component="assistant-message"] p,
+  [data-component="assistant-message"] li,
+  [data-component="assistant-message"] pre,
+  [data-component="user-message"] [data-slot="user-message-text"] {
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-large);
+  }
+
+  [data-component="assistant-message"] :is(h1, h2, h3, h4) {
+    font-size: var(--font-size-large);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-tight);
+    font-weight: var(--font-weight-medium);
+  }
+
+  html[data-theme="codex"] {
+    /* Codex-theme-v1: accent, flat chrome */
+    --radius-sm: 0.125rem;
+    --radius-md: 0.1875rem;
+    --radius-lg: 0.25rem;
+    --radius-xl: 0.25rem;
+    --shadow-xs: 0 0 0 1px var(--border-weaker-base);
+    --shadow-md: 0 0 0 1px var(--border-weak-base);
+    --shadow-lg: 0 0 0 1px var(--border-weak-base);
+    --shadow-xs-border: 0 0 0 1px var(--border-weak-base);
+    --shadow-xs-border-base: 0 0 0 1px var(--border-weaker-base);
+    --shadow-xs-border-focus:
+      0 0 0 1px var(--border-selected),
+      0 0 0 3px color-mix(in srgb, var(--border-selected) 28%, transparent);
+    --shadow-lg-border-base: 0 0 0 1px var(--border-weak-base);
+  }
+
   @keyframes session-progress-whip {
     0% {
       clip-path: inset(0 100% 0 0 round 999px);
@@ -82,4 +149,31 @@
       opacity: 1;
     }
   }
+}
+
+/* Codex sidebar tint — outside @layer so it wins over Tailwind bg-* utilities */
+html[data-theme="codex"] {
+  --codex-sidebar-bg: #eceff3;
+  --codex-sidebar-bg-muted: #e6eaef;
+  --codex-sidebar-border: #dde3eb;
+}
+
+html[data-theme="codex"] [data-component="sidebar-panel"] {
+  background-color: var(--codex-sidebar-bg);
+  border-color: var(--codex-sidebar-border);
+}
+
+html[data-theme="codex"] [data-component="sidebar-hierarchy"] {
+  background-color: var(--codex-sidebar-bg);
+}
+
+html[data-theme="codex"] [data-component="sidebar-rail"],
+html[data-theme="codex"] [data-component="sidebar-footer"] {
+  background-color: var(--codex-sidebar-bg-muted);
+  border-color: var(--codex-sidebar-border);
+}
+
+html[data-theme="codex"] [data-component="sidebar-nav-mobile"] {
+  background-color: var(--codex-sidebar-bg);
+  border-color: var(--codex-sidebar-border);
 }

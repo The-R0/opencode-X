@@ -20,6 +20,7 @@ import { getFilename } from "@opencode-ai/core/util/path"
 import { Popover as KobaltePopover } from "@kobalte/core/popover"
 import { shouldMarkBoundaryGesture, normalizeWheelDelta } from "@/pages/session/message-gesture"
 import { SessionContextUsage } from "@/components/session-context-usage"
+import { SessionViewToolbar } from "@/components/session/session-view-toolbar"
 import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
 import { useLanguage } from "@/context/language"
@@ -791,8 +792,7 @@ export function MessageTimeline(props: {
                             data-slot="session-title-child"
                             value={title.draft}
                             disabled={titleMutation.isPending}
-                            class="text-14-medium text-text-strong grow-1 min-w-0 rounded-[6px] pl-1 -ml-1"
-                            style={{ "--inline-input-shadow": "var(--shadow-xs-border-select)" }}
+                            class="text-14-medium text-text-strong grow-1 min-w-0 pl-1 -ml-1"
                             onInput={(event) => setTitle("draft", event.currentTarget.value)}
                             onKeyDown={(event) => {
                               event.stopPropagation()
@@ -814,181 +814,9 @@ export function MessageTimeline(props: {
                   </div>
                   <Show when={sessionID()} keyed>
                     {(id) => (
-                      <div class="shrink-0 flex items-center gap-3">
+                      <div class="shrink-0 flex items-center gap-2">
+                        <SessionViewToolbar />
                         <SessionContextUsage placement="bottom" />
-                        <Show when={!parentID()}>
-                          <DropdownMenu
-                            gutter={4}
-                            placement="bottom-end"
-                            open={title.menuOpen}
-                            onOpenChange={(open) => {
-                              setTitle("menuOpen", open)
-                              if (open) return
-                            }}
-                          >
-                            <DropdownMenu.Trigger
-                              as={IconButton}
-                              icon="dot-grid"
-                              variant="ghost"
-                              class="size-6 rounded-md data-[expanded]:bg-surface-base-active"
-                              classList={{
-                                "bg-surface-base-active": share.open || title.pendingShare,
-                              }}
-                              aria-label={language.t("common.moreOptions")}
-                              aria-expanded={title.menuOpen || share.open || title.pendingShare}
-                              ref={(el: HTMLButtonElement) => {
-                                more = el
-                              }}
-                            />
-                            <DropdownMenu.Portal>
-                              <DropdownMenu.Content
-                                style={{ "min-width": "104px" }}
-                                onCloseAutoFocus={(event) => {
-                                  if (title.pendingRename) {
-                                    event.preventDefault()
-                                    setTitle("pendingRename", false)
-                                    openTitleEditor()
-                                    return
-                                  }
-                                  if (title.pendingShare) {
-                                    event.preventDefault()
-                                    requestAnimationFrame(() => {
-                                      setShare({ open: true, dismiss: null })
-                                      setTitle("pendingShare", false)
-                                    })
-                                  }
-                                }}
-                              >
-                                <DropdownMenu.Item
-                                  onSelect={() => {
-                                    setTitle("pendingRename", true)
-                                    setTitle("menuOpen", false)
-                                  }}
-                                >
-                                  <DropdownMenu.ItemLabel>{language.t("common.rename")}</DropdownMenu.ItemLabel>
-                                </DropdownMenu.Item>
-                                <Show when={shareEnabled()}>
-                                  <DropdownMenu.Item
-                                    onSelect={() => {
-                                      setTitle({ pendingShare: true, menuOpen: false })
-                                    }}
-                                  >
-                                    <DropdownMenu.ItemLabel>
-                                      {language.t("session.share.action.share")}
-                                    </DropdownMenu.ItemLabel>
-                                  </DropdownMenu.Item>
-                                </Show>
-                                <DropdownMenu.Item onSelect={() => void archiveSession(id)}>
-                                  <DropdownMenu.ItemLabel>{language.t("common.archive")}</DropdownMenu.ItemLabel>
-                                </DropdownMenu.Item>
-                                <DropdownMenu.Separator />
-                                <DropdownMenu.Item
-                                  onSelect={() => dialog.show(() => <DialogDeleteSession sessionID={id} />)}
-                                >
-                                  <DropdownMenu.ItemLabel>{language.t("common.delete")}</DropdownMenu.ItemLabel>
-                                </DropdownMenu.Item>
-                              </DropdownMenu.Content>
-                            </DropdownMenu.Portal>
-                          </DropdownMenu>
-
-                          <KobaltePopover
-                            open={share.open}
-                            anchorRef={() => more}
-                            placement="bottom-end"
-                            gutter={4}
-                            modal={false}
-                            onOpenChange={(open) => {
-                              if (open) setShare("dismiss", null)
-                              setShare("open", open)
-                            }}
-                          >
-                            <KobaltePopover.Portal>
-                              <KobaltePopover.Content
-                                data-component="popover-content"
-                                style={{ "min-width": "320px" }}
-                                onEscapeKeyDown={(event) => {
-                                  setShare({ dismiss: "escape", open: false })
-                                  event.preventDefault()
-                                  event.stopPropagation()
-                                }}
-                                onPointerDownOutside={() => {
-                                  setShare({ dismiss: "outside", open: false })
-                                }}
-                                onFocusOutside={() => {
-                                  setShare({ dismiss: "outside", open: false })
-                                }}
-                                onCloseAutoFocus={(event) => {
-                                  if (share.dismiss === "outside") event.preventDefault()
-                                  setShare("dismiss", null)
-                                }}
-                              >
-                                <div class="flex flex-col p-3">
-                                  <div class="flex flex-col gap-1">
-                                    <div class="text-13-medium text-text-strong">
-                                      {language.t("session.share.popover.title")}
-                                    </div>
-                                    <div class="text-12-regular text-text-weak">
-                                      {shareUrl()
-                                        ? language.t("session.share.popover.description.shared")
-                                        : language.t("session.share.popover.description.unshared")}
-                                    </div>
-                                  </div>
-                                  <div class="mt-3 flex flex-col gap-2">
-                                    <Show
-                                      when={shareUrl()}
-                                      fallback={
-                                        <Button
-                                          size="large"
-                                          variant="primary"
-                                          class="w-full"
-                                          onClick={shareSession}
-                                          disabled={shareMutation.isPending}
-                                        >
-                                          {shareMutation.isPending
-                                            ? language.t("session.share.action.publishing")
-                                            : language.t("session.share.action.publish")}
-                                        </Button>
-                                      }
-                                    >
-                                      <div class="flex flex-col gap-2">
-                                        <TextField
-                                          value={shareUrl() ?? ""}
-                                          readOnly
-                                          copyable
-                                          copyKind="link"
-                                          tabIndex={-1}
-                                          class="w-full"
-                                        />
-                                        <div class="grid grid-cols-2 gap-2">
-                                          <Button
-                                            size="large"
-                                            variant="secondary"
-                                            class="w-full shadow-none border border-border-weak-base"
-                                            onClick={unshareSession}
-                                            disabled={unshareMutation.isPending}
-                                          >
-                                            {unshareMutation.isPending
-                                              ? language.t("session.share.action.unpublishing")
-                                              : language.t("session.share.action.unpublish")}
-                                          </Button>
-                                          <Button
-                                            size="large"
-                                            variant="primary"
-                                            class="w-full"
-                                            onClick={viewShare}
-                                            disabled={unshareMutation.isPending}
-                                          >
-                                            {language.t("session.share.action.view")}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </Show>
-                                  </div>
-                                </div>
-                              </KobaltePopover.Content>
-                            </KobaltePopover.Portal>
-                          </KobaltePopover>
-                        </Show>
                       </div>
                     )}
                   </Show>
