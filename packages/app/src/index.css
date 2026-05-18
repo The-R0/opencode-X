@@ -14,6 +14,59 @@
     line-height: var(--line-height-large);
   }
 
+  /* Project expand/collapse — chevron rotate + session list height (OpenGUI-style) */
+  [data-component="sidebar-hierarchy"] [data-slot="hierarchy-chevron"] {
+    display: inline-flex;
+    transition: transform 200ms ease;
+    transform: rotate(0deg);
+  }
+
+  [data-component="sidebar-hierarchy"] [data-slot="hierarchy-chevron"][data-expanded="true"] {
+    transform: rotate(90deg);
+  }
+
+  [data-component="sidebar-hierarchy"] [data-component="sidebar-project-block"] > [data-slot="collapsible-content"] {
+    overflow: hidden;
+  }
+
+  [data-component="sidebar-hierarchy"]
+    [data-component="sidebar-project-block"]
+    > [data-slot="collapsible-content"][data-expanded] {
+    animation: hierarchy-slide-down 220ms ease-out;
+  }
+
+  [data-component="sidebar-hierarchy"]
+    [data-component="sidebar-project-block"]
+    > [data-slot="collapsible-content"][data-closed] {
+    animation: hierarchy-slide-up 200ms ease-in;
+  }
+
+  html[data-theme="codex"] [data-component="sidebar-hierarchy"] [data-slot="hierarchy-project-sessions"] {
+    border-color: var(--codex-sidebar-border);
+  }
+
+  @keyframes hierarchy-slide-down {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--kb-collapsible-content-height);
+      opacity: 1;
+    }
+  }
+
+  @keyframes hierarchy-slide-up {
+    from {
+      height: var(--kb-collapsible-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
+
   [data-component="sidebar-project-block"] {
     contain: layout style;
   }
@@ -33,6 +86,35 @@
   html[data-theme="codex"] [data-component="sidebar-hierarchy"] .group\/session,
   html[data-theme="codex"] [data-component="sidebar-hierarchy"] .group\/session a {
     box-shadow: none;
+  }
+
+  /* Inline rename — flat inset border instead of focus ring / select glow */
+  [data-component="sidebar-hierarchy"] [data-component="inline-input"],
+  [data-slot="session-title-child"][data-component="inline-input"] {
+    --inline-input-shadow: none;
+    border-radius: var(--radius-sm);
+    padding-inline: 6px;
+    background-color: var(--surface-raised-base);
+    box-shadow: inset 0 0 0 1px var(--border-weak-base);
+    outline: none;
+  }
+
+  [data-component="sidebar-hierarchy"] [data-component="inline-input"]:focus,
+  [data-slot="session-title-child"][data-component="inline-input"]:focus {
+    box-shadow: inset 0 0 0 1px var(--border-interactive-base);
+    background-color: var(--surface-base);
+  }
+
+  html[data-theme="codex"] [data-component="sidebar-hierarchy"] [data-component="inline-input"],
+  html[data-theme="codex"] [data-slot="session-title-child"][data-component="inline-input"] {
+    background-color: color-mix(in srgb, var(--codex-sidebar-bg) 55%, white);
+    box-shadow: inset 0 0 0 1px var(--codex-sidebar-border);
+  }
+
+  html[data-theme="codex"] [data-component="sidebar-hierarchy"] [data-component="inline-input"]:focus,
+  html[data-theme="codex"] [data-slot="session-title-child"][data-component="inline-input"]:focus {
+    background-color: #ffffff;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--codex-sidebar-border) 70%, var(--border-interactive-base));
   }
 
   /* Chat / markdown — compact type rhythm (all themes) */

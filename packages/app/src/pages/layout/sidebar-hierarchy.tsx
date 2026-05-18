@@ -1,5 +1,7 @@
 import { base64Encode } from "@opencode-ai/core/util/encode"
 import { Collapsible } from "@opencode-ai/ui/collapsible"
+import { ContextMenu } from "@opencode-ai/ui/context-menu"
+import { DropdownMenu } from "@opencode-ai/ui/dropdown-menu"
 import { Icon } from "@opencode-ai/ui/icon"
 import { IconButton } from "@opencode-ai/ui/icon-button"
 import { Tooltip } from "@opencode-ai/ui/tooltip"
@@ -8,6 +10,7 @@ import { useNavigate } from "@solidjs/router"
 import { type LocalProject } from "@/context/layout"
 import { useGlobalSync } from "@/context/global-sync"
 import { useLanguage } from "@/context/language"
+import { useNotification } from "@/context/notification"
 import { createEffect, createMemo, createSignal, For, onCleanup, Show, type Accessor, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { displayName, sortedRootSessions } from "./helpers"
@@ -24,7 +27,8 @@ import type { ProjectSidebarContext } from "./sidebar-project"
 import type { WorkspaceSidebarContext } from "./sidebar-workspace"
 
 const SESSION_PREVIEW_LIMIT = 12
-const LOAD_STAGGER_MS = 120
+/** Defer session list fetch so the window can paint first (reduces startup jank). */
+const SESSION_LOAD_DEFER_MS = 250
 
 export type SidebarHierarchyContext = {
   projects: Accessor<LocalProject[]>
@@ -42,6 +46,120 @@ export type SidebarHierarchyContext = {
   renameProject: (project: LocalProject, next: string) => void
   renameSession: (session: Session, next: string) => void
   clearHoverProjectSoon: () => void
+}
+
+const HierarchyProjectMenu = (props: {
+  project: LocalProject
+  hierarchy: SidebarHierarchyContext
+  children: JSX.Element
+}): JSX.Element => {
+  const language = useLanguage()
+  const notification = useNotification()
+  const ctx = props.hierarchy.ctx
+  const dirs = createMemo(() => {
+    if (!props.hierarchy.workspacesEnabled(props.project)) return [props.project.worktree]
+    return props.hierarchy.workspaceIds(props.project)
+  })
+  const unseenCount = createMemo(() =>
+    dirs().reduce((total, directory) => total + notification.project.unseenCount(directory), 0),
+  )
+  const clearNotifications = () =>
+    dirs()
+      .filter((directory) => notification.project.unseenCount(directory) > 0)
+      .forEach((directory) => notification.project.markViewed(directory))
+
+  return (
+    <ContextMenu>
+      <ContextMenu.Trigger as="div" class="contents">
+        {props.children}
+      </ContextMenu.Trigger>
+      <ContextMenu.Portal>
+        <ContextMenu.Content>
+          <ContextMenu.Item onSelect={() => ctx.showEditProjectDialog(props.project)}>
+            <ContextMenu.ItemLabel>{language.t("common.edit")}</ContextMenu.ItemLabel>
+          </ContextMenu.Item>
+          <ContextMenu.Item
+            disabled={props.project.vcs !== "git" && !props.hierarchy.workspacesEnabled(props.project)}
+            onSelect={() => ctx.toggleProjectWorkspaces(props.project)}
+          >
+            <ContextMenu.ItemLabel>
+              {props.hierarchy.workspacesEnabled(props.project)
+                ? language.t("sidebar.workspaces.disable")
+                : language.t("sidebar.workspaces.enable")}
+            </ContextMenu.ItemLabel>
+          </ContextMenu.Item>
+          <ContextMenu.Item disabled={unseenCount() === 0} onSelect={clearNotifications}>
+            <ContextMenu.ItemLabel>{language.t("sidebar.project.clearNotifications")}</ContextMenu.ItemLabel>
+          </ContextMenu.Item>
+          <ContextMenu.Separator />
+          <ContextMenu.Item onSelect={() => ctx.closeProject(props.project.worktree)}>
+            <ContextMenu.ItemLabel>{language.t("common.close")}</ContextMenu.ItemLabel>
+          </ContextMenu.Item>
+        </ContextMenu.Content>
+      </ContextMenu.Portal>
+    </ContextMenu>
+  )
+}
+
+const HierarchyProjectDropdown = (props: {
+  project: LocalProject
+  hierarchy: SidebarHierarchyContext
+}): JSX.Element => {
+  const language = useLanguage()
+  const notification = useNotification()
+  const ctx = props.hierarchy.ctx
+  const dirs = createMemo(() => {
+    if (!props.hierarchy.workspacesEnabled(props.project)) return [props.project.worktree]
+    return props.hierarchy.workspaceIds(props.project)
+  })
+  const unseenCount = createMemo(() =>
+    dirs().reduce((total, directory) => total + notification.project.unseenCount(directory), 0),
+  )
+  const clearNotifications = () =>
+    dirs()
+      .filter((directory) => notification.project.unseenCount(directory) > 0)
+      .forEach((directory) => notification.project.markViewed(directory))
+
+  return (
+    <DropdownMenu>
+      <Tooltip value={language.t("common.moreOptions")} placement="top">
+        <DropdownMenu.Trigger
+          as={IconButton}
+          icon="dot-grid"
+          variant="ghost"
+          class="size-6 shrink-0 rounded-sm opacity-0 pointer-events-none text-icon-weak transition-opacity group-hover/project-header:opacity-100 group-hover/project-header:pointer-events-auto group-focus-within/project-header:opacity-100 group-focus-within/project-header:pointer-events-auto"
+          data-action="project-menu"
+          data-project={base64Encode(props.project.worktree)}
+          aria-label={language.t("common.moreOptions")}
+          onClick={(event) => event.stopPropagation()}
+        />
+      </Tooltip>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content>
+          <DropdownMenu.Item onSelect={() => ctx.showEditProjectDialog(props.project)}>
+            <DropdownMenu.ItemLabel>{language.t("common.edit")}</DropdownMenu.ItemLabel>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            disabled={props.project.vcs !== "git" && !props.hierarchy.workspacesEnabled(props.project)}
+            onSelect={() => ctx.toggleProjectWorkspaces(props.project)}
+          >
+            <DropdownMenu.ItemLabel>
+              {props.hierarchy.workspacesEnabled(props.project)
+                ? language.t("sidebar.workspaces.disable")
+                : language.t("sidebar.workspaces.enable")}
+            </DropdownMenu.ItemLabel>
+          </DropdownMenu.Item>
+          <DropdownMenu.Item disabled={unseenCount() === 0} onSelect={clearNotifications}>
+            <DropdownMenu.ItemLabel>{language.t("sidebar.project.clearNotifications")}</DropdownMenu.ItemLabel>
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator />
+          <DropdownMenu.Item onSelect={() => ctx.closeProject(props.project.worktree)}>
+            <DropdownMenu.ItemLabel>{language.t("common.close")}</DropdownMenu.ItemLabel>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu>
+  )
 }
 
 const DirectorySessions = (props: {
@@ -149,8 +267,9 @@ const ProjectBlock = (props: {
         if (open !== props.expanded()) props.onExpandedChange(open)
       }}
     >
-      <div class="group/project-header mt-2 first:mt-0">
-        <div
+      <HierarchyProjectMenu project={props.project} hierarchy={props.hierarchy}>
+        <div class="group/project-header mt-2 first:mt-0">
+          <div
           class="flex min-w-0 items-center gap-0.5 rounded-md border px-1 py-0.5 transition-colors"
           classList={{
             "border-border-weak-base": active(),
@@ -192,6 +311,7 @@ const ProjectBlock = (props: {
               stopPropagation
             />
           </button>
+          <HierarchyProjectDropdown project={props.project} hierarchy={props.hierarchy} />
           <Tooltip value={language.t("command.session.new")} placement="top">
             <IconButton
               icon="new-session"
@@ -209,7 +329,8 @@ const ProjectBlock = (props: {
             />
           </Tooltip>
         </div>
-      </div>
+        </div>
+      </HierarchyProjectMenu>
 
       <Collapsible.Content>
         <div
@@ -273,20 +394,27 @@ export const SidebarHierarchy = (props: {
     if (directories.length === 0) return
 
     let cancelled = false
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        const seen = new Set<string>()
+        const pending = directories.filter((directory) => {
+          if (seen.has(directory)) return false
+          seen.add(directory)
+          return true
+        })
+        await Promise.all(
+          pending.map(async (directory) => {
+            if (cancelled) return
+            await globalSync.project.loadSessions(directory)
+          }),
+        )
+      })()
+    }, SESSION_LOAD_DEFER_MS)
+
     onCleanup(() => {
       cancelled = true
+      window.clearTimeout(timer)
     })
-
-    void (async () => {
-      const seen = new Set<string>()
-      for (const directory of directories) {
-        if (cancelled || seen.has(directory)) continue
-        seen.add(directory)
-        await globalSync.project.loadSessions(directory)
-        if (cancelled) return
-        await new Promise((resolve) => setTimeout(resolve, LOAD_STAGGER_MS))
-      }
-    })()
   })
 
   return (
