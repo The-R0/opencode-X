@@ -1,16 +1,49 @@
-# OpenCodex
+# Opencodex
 
 <p align="center">
   <strong>简体中文</strong> · <a href="README.md">English</a>
 </p>
 
-OpenCodex 是 [opencode](https://github.com/anomalyco/opencode) 的非官方分支，主要面向 **桌面端（Electron）** 的使用体验做实验性改进。
+**Opencodex** 是本仓库名；安装的桌面应用仍显示为 **OpenCode**，与官方桌面版共用同一套用户数据与模型配置。
 
-在保留 opencode 核心能力的前提下，本仓库尝试一套更接近 Codex / Cursor 习惯的界面：层级化侧边栏、更克制的选中样式、统一的文件夹图标，以及独立的 Codex 视觉主题，方便在多个本地项目之间切换。
+本仓库是 [opencode](https://github.com/anomalyco/opencode) 的非官方分支，主要面向 **桌面端（Electron）** 做 UI 实验（层级侧边栏、Codex 主题等）。内核与官方相同，**API Key、模型、项目数据与官方 OpenCode 桌面版共用**。
 
-> OpenCodex 与 OpenCode 官方团队无关，也不代表上游产品方向。
+| 数据 | 路径（Windows） |
+|------|-----------------|
+| 桌面壳设置、窗口状态 | `%APPDATA%\ai.opencode.desktop\` |
+| 模型 / API Key / 认证 | `%APPDATA%\opencode\` |
+
+> 本 fork 与 OpenCode 官方团队无关，也不代表上游产品方向。
 
 ## 主要改动
+
+## 当前 UI 和官方 OpenCode 的差异
+
+Opencodex 保持 OpenCode 的核心引擎和配置路径不变，但桌面端 UI 有明显调整。最大的变化在左侧栏：项目被当成一级工作区块，会话嵌套在所属项目下面。
+
+### 左侧栏前后对比
+
+| 官方 OpenCode | 当前 Opencodex |
+|-------------------|-------------------|
+| <img src="./docs/assets/ui-differences/sidebar-before.png" alt="官方 OpenCode 左侧栏：竖向项目头像列表和当前项目面板。" width="260"> | <img src="./docs/assets/ui-differences/sidebar-after.png" alt="当前 Opencodex 左侧栏：搜索框、项目树、固定打开项目入口和底部工具栏。" width="320"> |
+
+### 顶部工具栏前后对比
+
+| 官方 OpenCode | 当前 Opencodex |
+|-------------------|-------------------|
+| <img src="./docs/assets/ui-differences/toolbar-before.png" alt="官方 OpenCode 顶部工具栏：应用图标下拉、会话工具和更多菜单。" width="260"> | <img src="./docs/assets/ui-differences/toolbar-after.png" alt="当前 Opencodex 顶部工具栏：会话工具靠近当前会话，项目入口收敛为文件夹下拉。" width="240"> |
+
+### 项目树和会话菜单
+
+<img src="./docs/assets/ui-differences/session-menu-after.png" alt="当前 Opencodex 项目树：会话嵌套在项目下方，行尾更多菜单可直接操作会话。" width="300">
+
+主要差异：
+
+- **从项目头像 rail 变成项目树**：展开后的桌面侧边栏直接显示项目，并把最近会话挂在项目下。
+- **项目标题变成项目块**：项目行包含边框、展开箭头、文件夹图标、可编辑项目名，以及 hover 出现的新建会话按钮。
+- **打开项目固定在列表外**：打开项目按钮放在滚动项目树下方，不会因为项目太多被滚走。
+- **会话行有独立操作入口**：嵌套会话行右侧有 `...` 菜单，可做重命名、分享、归档、删除等操作。
+- **更接近 Codex 的紧凑视觉**：侧边栏颜色、边框、内联重命名输入框和 Markdown 阅读节奏都做了更轻的处理。
 
 ### 视觉与主题
 
@@ -97,7 +130,7 @@ git push origin v0.1.0
 
 **窗口总是很小 / 缩放错乱**
 
-- 删除窗口状态缓存：`%APPDATA%\ai.opencode.desktop.opencodex\window-state.json`（正式包）或 `%APPDATA%\ai.opencode.desktop.dev\window-state.json`（开发包）。
+- 删除窗口状态缓存：`%APPDATA%\ai.opencode.desktop\window-state.json`（与官方正式版相同目录）。
 
 ## 状态
 

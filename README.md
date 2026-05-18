@@ -1,16 +1,49 @@
-# OpenCodex
+# Opencodex
 
 <p align="center">
   <strong>English</strong> · <a href="README.zh.md">简体中文</a>
 </p>
 
-OpenCodex is an unofficial fork of [opencode](https://github.com/anomalyco/opencode) focused on **desktop (Electron)** UX experiments.
+**Opencodex** is this repository; the installed app is still **OpenCode** and shares configuration with the official desktop build.
 
-It keeps opencode’s core capabilities while exploring a Codex / Cursor–style interface: hierarchical sidebar, subtle selection states, unified folder icons, and a dedicated Codex visual theme for users juggling many local projects.
+Unofficial fork of [opencode](https://github.com/anomalyco/opencode) focused on **desktop (Electron)** UX (hierarchy sidebar, Codex theme, etc.). Same engine as upstream — **API keys, models, and auth use the same paths as official OpenCode desktop**.
 
-> OpenCodex is not affiliated with the OpenCode team and does not represent upstream product direction.
+| Data | Path (Windows) |
+|------|----------------|
+| Desktop shell settings, window state | `%APPDATA%\ai.opencode.desktop\` |
+| Models / API keys / auth | `%APPDATA%\opencode\` |
+
+> Not affiliated with the OpenCode team.
 
 ## Highlights
+
+## UI differences from official OpenCode
+
+Opencodex keeps the same OpenCode engine and configuration paths, but the desktop UI is intentionally different. The biggest change is the left sidebar: projects are treated as first-class workspace blocks, and recent sessions live under the project they belong to.
+
+### Sidebar before and after
+
+| Official OpenCode | Current Opencodex |
+|-------------------|-------------------|
+| <img src="./docs/assets/ui-differences/sidebar-before.png" alt="Official OpenCode sidebar with a vertical project avatar rail and the selected project panel." width="260"> | <img src="./docs/assets/ui-differences/sidebar-after.png" alt="Current Opencodex sidebar with search, project tree, fixed open-project action, and bottom tools." width="320"> |
+
+### Toolbar before and after
+
+| Official OpenCode | Current Opencodex |
+|-------------------|-------------------|
+| <img src="./docs/assets/ui-differences/toolbar-before.png" alt="Official OpenCode toolbar with app icon dropdown, session tools, and more menu." width="260"> | <img src="./docs/assets/ui-differences/toolbar-after.png" alt="Current Opencodex toolbar with session tools grouped closer to the active session and project access as a folder dropdown." width="240"> |
+
+### Project tree and session menu
+
+<img src="./docs/assets/ui-differences/session-menu-after.png" alt="Current Opencodex project tree with a nested session row and row-level more menu." width="300">
+
+Key differences:
+
+- **Project tree instead of project rail first** — expanded desktop sidebar shows projects with sessions nested underneath.
+- **Project block headers** — project rows use a bordered block with chevron, folder glyph, editable project name, and hover new-session action.
+- **Fixed open-project action** — the open-project button sits below the scrollable project tree instead of being buried at the end of the list.
+- **Session row actions** — nested sessions expose row-level actions through the `...` menu.
+- **Codex-style density** — sidebar colors, borders, inline rename fields, and markdown rhythm are tuned for a calmer Codex-like workspace.
 
 ### Visual & theme
 
@@ -91,7 +124,7 @@ Pushing a `v*` tag runs [.github/workflows/release-opencodex.yml](.github/workfl
 
 **Small window / broken scaling**
 
-- Remove window state: `%APPDATA%\ai.opencode.desktop.opencodex\window-state.json` (release build) or `%APPDATA%\ai.opencode.desktop.dev\window-state.json` (dev build).
+- Remove window state: `%APPDATA%\ai.opencode.desktop\window-state.json` (same as official desktop).
 
 ## Status
 
