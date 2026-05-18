@@ -6,7 +6,7 @@ import { ContextMenu } from "@opencode-ai/ui/context-menu"
 import { HoverCard } from "@opencode-ai/ui/hover-card"
 import { Icon } from "@opencode-ai/ui/icon"
 import { createSortable } from "@thisbeyond/solid-dnd"
-import { useLayout, type LocalProject } from "@/context/layout"
+import { type LocalProject } from "@/context/layout"
 import { useGlobalSync } from "@/context/global-sync"
 import { useLanguage } from "@/context/language"
 import { useNotification } from "@/context/notification"
@@ -74,7 +74,6 @@ const ProjectTile = (props: {
   language: ReturnType<typeof useLanguage>
 }): JSX.Element => {
   const notification = useNotification()
-  const layout = useLayout()
   const unseenCount = createMemo(() =>
     props.dirs().reduce((total, directory) => total + notification.project.unseenCount(directory), 0),
   )
@@ -101,11 +100,12 @@ const ProjectTile = (props: {
         data-action="project-switch"
         data-project={base64Encode(props.project.worktree)}
         classList={{
-          "flex items-center justify-center size-10 p-1 rounded-lg overflow-hidden transition-colors cursor-default": true,
-          "bg-transparent border-2 border-icon-strong-base hover:bg-surface-base-hover": props.selected(),
-          "bg-transparent border border-transparent hover:bg-surface-base-hover hover:border-border-weak-base":
+          "group/project-row flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-sm border px-2 py-1.5 text-left transition-colors cursor-default":
+            true,
+          "border-border-interactive-base bg-surface-interactive-weak": props.selected(),
+          "border-transparent bg-transparent hover:bg-surface-base-hover hover:border-border-weak-base":
             !props.selected() && !props.active(),
-          "bg-surface-base-hover border border-border-weak-base": !props.selected() && props.active(),
+          "border-border-weak-base bg-surface-base-hover": !props.selected() && props.active(),
         }}
         onPointerDown={(event) => {
           if (event.button === 0 && !event.ctrlKey) {
@@ -137,14 +137,22 @@ const ProjectTile = (props: {
         onClick={() => {
           props.setOpen(false)
           if (props.selected()) {
-            layout.sidebar.toggle()
             return
           }
           props.navigateToProject(props.project.worktree)
         }}
         onBlur={() => props.setOpen(false)}
       >
-        <ProjectIcon project={props.project} notify working={props.isWorking()} />
+        <ProjectIcon project={props.project} notify working={props.isWorking()} class="size-7" />
+        <span class="flex min-w-0 flex-1 flex-col">
+          <span class="truncate text-14-medium text-text-strong">{displayName(props.project)}</span>
+          <span class="truncate text-12-regular text-text-weak">{props.project.worktree}</span>
+        </span>
+        <Icon
+          name="chevron-right"
+          size="small"
+          class="text-icon-weak-base opacity-0 transition-opacity group-hover/project-row:opacity-100"
+        />
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
         <ContextMenu.Content>

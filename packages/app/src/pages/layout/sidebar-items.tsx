@@ -48,17 +48,33 @@ export const ProjectIcon = (props: {
   )
   const notify = createMemo(() => props.notify && (hasPermissions() || unseenCount() > 0))
   const name = createMemo(() => props.project.name || getFilename(props.project.worktree))
+  const src = createMemo(() => getProjectAvatarSource(props.project.id, props.project.icon))
 
   return (
-    <div class={`relative size-8 shrink-0 rounded ${props.class ?? ""}`}>
-      <div class="size-full rounded overflow-clip">
-        <Avatar
-          fallback={name()}
-          src={getProjectAvatarSource(props.project.id, props.project.icon)}
-          {...getAvatarColors(props.project.icon?.color)}
-          class="size-full rounded"
-          classList={{ "badge-mask": notify() }}
-        />
+    <div class={`relative size-8 shrink-0 rounded-sm ${props.class ?? ""}`}>
+      <div class="size-full overflow-clip rounded-sm">
+        <Show
+          when={src()}
+          fallback={
+            <div
+              class="flex size-full items-center justify-center rounded-sm border border-border-weak-base bg-surface-interactive-weak text-icon-interactive-base"
+              classList={{ "badge-mask": notify() }}
+              aria-hidden="true"
+            >
+              <Icon name="folder" size="small" />
+            </div>
+          }
+        >
+          {(source) => (
+            <Avatar
+              fallback={name()}
+              src={source()}
+              {...getAvatarColors(props.project.icon?.color)}
+              class="size-full rounded-sm"
+              classList={{ "badge-mask": notify() }}
+            />
+          )}
+        </Show>
       </div>
       <Show when={notify()}>
         <div
@@ -86,6 +102,7 @@ export type SessionItemProps = {
   slug: string
   mobile?: boolean
   dense?: boolean
+  compact?: boolean
   showTooltip?: boolean
   showChild?: boolean
   level?: number
@@ -100,6 +117,7 @@ const SessionRow = (props: {
   slug: string
   mobile?: boolean
   dense?: boolean
+  compact?: boolean
   tint: Accessor<string | undefined>
   isWorking: Accessor<boolean>
   hasPermissions: Accessor<boolean>
@@ -111,11 +129,17 @@ const SessionRow = (props: {
   warmFocus: () => void
 }): JSX.Element => {
   const title = () => sessionTitle(props.session.title)
+  const status = () => props.isWorking() || props.hasPermissions() || props.hasError() || props.unseenCount() > 0
 
   return (
     <A
       href={`/${props.slug}/session/${props.session.id}`}
-      class={`flex items-center gap-2 min-w-0 w-full text-left focus:outline-none ${props.dense ? "py-0.5" : "py-1"}`}
+      classList={{
+        "flex min-w-0 w-full items-center text-left focus:outline-none": true,
+        "gap-2 py-0.5": props.dense,
+        "gap-2 py-1": !props.dense && !props.compact,
+        "gap-1.5 rounded-md px-2 py-1": props.compact,
+      }}
       onPointerDown={props.warmPress}
       onFocus={props.warmFocus}
       onClick={() => {
@@ -123,14 +147,14 @@ const SessionRow = (props: {
         props.clearHoverProjectSoon()
       }}
     >
-      <Show when={props.isWorking() || props.hasPermissions() || props.hasError() || props.unseenCount() > 0}>
-        <div
-          class="shrink-0 size-6 flex items-center justify-center"
+      <div
+        class="flex shrink-0 items-center justify-center"
+        classList={{ "size-6": !props.compact, "size-4": props.compact }}
           style={{ color: props.tint() ?? "var(--icon-interactive-base)" }}
         >
           <Switch>
             <Match when={props.isWorking()}>
-              <Spinner class="size-[15px]" />
+              <Spinner class={props.compact ? "size-3" : "size-[15px]"} />
             </Match>
             <Match when={props.hasPermissions()}>
               <div class="size-1.5 rounded-full bg-surface-warning-strong" />
@@ -141,11 +165,68 @@ const SessionRow = (props: {
             <Match when={props.unseenCount() > 0}>
               <div class="size-1.5 rounded-full bg-text-interactive-base" />
             </Match>
+            <Match when={props.compact && !status()}>
+              <div class="size-1.5 rounded-full bg-text-weaker" />
+            </Match>
           </Switch>
         </div>
-      </Show>
-      <span class="text-14-regular text-text-strong min-w-0 flex-1 truncate">{title()}</span>
+      <span
+        classList={{
+          "min-w-0 flex-1 truncate text-text-strong": true,
+          "text-14-regular": !props.compact,
+          "text-13-regular": props.compact,
+        }}
+      >
+        {title()}
+      </span>
     </A>
+  )
+}
+
+export const HierarchySessionItem = (props: {
+  session: Session
+  slug: string
+  directory: string
+  clearHoverProjectSoon: () => void
+}): JSX.Element => {
+  const layout = useLayout()
+  const notification = useNotification()
+  const globalSync = useGlobalSync()
+  const [store] = globalSync.child(props.directory, { bootstrap: false })
+  const title = () => sessionTitle(props.session.title)
+  const isWorking = createMemo(() => store.session_working(props.session.id))
+  const unseenCount = createMemo(() => notification.session.unseenCount(props.session.id))
+  const hasError = createMemo(() => notification.session.unseenHasError(props.session.id))
+
+  return (
+    <div class="group/session relative w-full min-w-0 rounded-md pl-1 pr-1 shadow-none transition-colors hover:bg-surface-base-hover has-[.active]:bg-surface-base-active [&:has(:focus-visible)]:bg-surface-base-hover">
+      <A
+        href={`/${props.slug}/session/${props.session.id}`}
+        class="flex min-w-0 w-full items-center gap-1.5 rounded-md px-2 py-1 text-left shadow-none focus:outline-none"
+        onClick={() => {
+          if (layout.sidebar.opened()) return
+          props.clearHoverProjectSoon()
+        }}
+      >
+        <div class="flex size-4 shrink-0 items-center justify-center">
+          <Switch>
+            <Match when={isWorking()}>
+              <Spinner class="size-3" />
+            </Match>
+            <Match when={hasError()}>
+              <div class="size-1.5 rounded-full bg-text-diff-delete-base" />
+            </Match>
+            <Match when={unseenCount() > 0}>
+              <div class="size-1.5 rounded-full bg-text-interactive-base" />
+            </Match>
+            <Match when={true}>
+              <div class="size-1.5 rounded-full bg-text-weaker" />
+            </Match>
+          </Switch>
+        </div>
+        <span class="min-w-0 flex-1 truncate text-13-regular text-text-strong">{title()}</span>
+      </A>
+    </div>
   )
 }
 
@@ -202,6 +283,7 @@ export const SessionItem = (props: SessionItemProps): JSX.Element => {
       slug={props.slug}
       mobile={props.mobile}
       dense={props.dense}
+      compact={props.compact}
       tint={tint}
       isWorking={isWorking}
       hasPermissions={hasPermissions}
@@ -218,8 +300,16 @@ export const SessionItem = (props: SessionItemProps): JSX.Element => {
     <>
       <div
         data-session-id={props.session.id}
-        class="group/session relative w-full min-w-0 rounded-md cursor-default pr-3 transition-colors hover:bg-surface-raised-base-hover [&:has(:focus-visible)]:bg-surface-raised-base-hover has-[[data-expanded]]:bg-surface-raised-base-hover has-[.active]:bg-surface-base-active"
-        style={{ "padding-left": `${8 + (props.level ?? 0) * 16}px` }}
+        classList={{
+          "group/session relative w-full min-w-0 cursor-default transition-colors": true,
+          "rounded-md pl-1 pr-1 hover:bg-surface-raised-base-hover has-[.active]:bg-surface-raised-base-hover [&:has(:focus-visible)]:bg-surface-raised-base-hover":
+            props.compact,
+          "rounded-md pr-3 hover:bg-surface-raised-base-hover [&:has(:focus-visible)]:bg-surface-raised-base-hover has-[[data-expanded]]:bg-surface-raised-base-hover has-[.active]:bg-surface-base-active":
+            !props.compact,
+        }}
+        style={{
+          "padding-left": props.compact ? `${4 + (props.level ?? 0) * 12}px` : `${8 + (props.level ?? 0) * 16}px`,
+        }}
       >
         <div class="flex min-w-0 items-center gap-1">
           <div class="min-w-0 flex-1">
@@ -240,7 +330,7 @@ export const SessionItem = (props: SessionItemProps): JSX.Element => {
             </Show>
           </div>
 
-          <Show when={!props.level}>
+          <Show when={!props.level && !props.compact}>
             <div
               class="shrink-0 overflow-hidden transition-[width,opacity]"
               classList={{
@@ -282,6 +372,7 @@ export const NewSessionItem = (props: {
   slug: string
   mobile?: boolean
   dense?: boolean
+  compact?: boolean
   sidebarExpanded: Accessor<boolean>
   clearHoverProjectSoon: () => void
 }): JSX.Element => {
@@ -293,21 +384,45 @@ export const NewSessionItem = (props: {
     <A
       href={`/${props.slug}/session`}
       end
-      class={`flex items-center gap-2 min-w-0 w-full text-left focus:outline-none ${props.dense ? "py-0.5" : "py-1"}`}
+      classList={{
+        "flex min-w-0 w-full items-center text-left focus:outline-none": true,
+        "gap-2 py-0.5": props.dense,
+        "gap-2 py-1": !props.dense && !props.compact,
+        "gap-1.5 rounded-md px-2 py-1": props.compact,
+      }}
       onClick={() => {
         if (layout.sidebar.opened()) return
         props.clearHoverProjectSoon()
       }}
     >
-      <div class="shrink-0 size-6 flex items-center justify-center">
+      <div
+        class="flex shrink-0 items-center justify-center"
+        classList={{ "size-6": !props.compact, "size-4": props.compact }}
+      >
         <Icon name="new-session" size="small" class="text-icon-weak" />
       </div>
-      <span class="text-14-regular text-text-strong min-w-0 flex-1 truncate">{label}</span>
+      <span
+        classList={{
+          "min-w-0 flex-1 truncate": true,
+          "text-14-regular text-text-strong": !props.compact,
+          "text-13-regular text-text-weak": props.compact,
+        }}
+      >
+        {label}
+      </span>
     </A>
   )
 
   return (
-    <div class="group/session relative w-full min-w-0 rounded-md cursor-default transition-colors pl-2 pr-3 hover:bg-surface-raised-base-hover [&:has(:focus-visible)]:bg-surface-raised-base-hover has-[.active]:bg-surface-base-active">
+    <div
+      classList={{
+        "group/session relative w-full min-w-0 cursor-default transition-colors": true,
+        "rounded-md pl-1 pr-1 hover:bg-surface-raised-base-hover has-[.active]:bg-surface-raised-base-hover [&:has(:focus-visible)]:bg-surface-raised-base-hover":
+          props.compact,
+        "rounded-md pl-2 pr-3 hover:bg-surface-raised-base-hover has-[.active]:bg-surface-base-active [&:has(:focus-visible)]:bg-surface-raised-base-hover":
+          !props.compact,
+      }}
+    >
       <Show
         when={!tooltip()}
         fallback={

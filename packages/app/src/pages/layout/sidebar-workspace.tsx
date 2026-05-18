@@ -243,8 +243,15 @@ const WorkspaceSessionList = (props: {
   hasMore: Accessor<boolean>
   loadMore: () => Promise<void>
   language: ReturnType<typeof useLanguage>
+  nested?: boolean
 }): JSX.Element => (
-  <nav class="flex flex-col gap-1">
+  <nav
+    classList={{
+      "mt-1 flex flex-col gap-1": true,
+      "ml-7 border-l border-border-weaker-base pl-2": !!props.nested,
+    }}
+  >
+    <div class="px-2 pb-1 pt-2 text-12-medium uppercase text-text-weaker">Sessions</div>
     <Show when={props.showNew()}>
       <NewSessionItem
         slug={props.slug()}
@@ -381,9 +388,13 @@ export const SortableWorkspace = (props: {
                 when={workspaceEditActive()}
                 fallback={
                   <Collapsible.Trigger
-                    class={`flex items-center justify-between w-full pl-2 py-1.5 rounded-md hover:bg-surface-raised-base-hover transition-[padding] duration-200 ${
+                    class={`flex items-center justify-between w-full pl-2 py-1.5 rounded-sm border transition-[padding,background-color,border-color] duration-200 ${
                       menu.open ? "pr-16" : "pr-2"
                     } group-hover/workspace:pr-16 group-focus-within/workspace:pr-16`}
+                    classList={{
+                      "border-border-interactive-base bg-surface-interactive-weak": active(),
+                      "border-transparent hover:border-border-weak-base hover:bg-surface-raised-base-hover": !active(),
+                    }}
                     data-action="workspace-toggle"
                     data-workspace={base64Encode(props.directory)}
                   >
@@ -392,9 +403,13 @@ export const SortableWorkspace = (props: {
                 }
               >
                 <div
-                  class={`flex items-center justify-between w-full pl-2 py-1.5 rounded-md transition-[padding] duration-200 ${
+                  class={`flex items-center justify-between w-full pl-2 py-1.5 rounded-sm border transition-[padding,background-color,border-color] duration-200 ${
                     menu.open ? "pr-16" : "pr-2"
                   } group-hover/workspace:pr-16 group-focus-within/workspace:pr-16`}
+                  classList={{
+                    "border-border-interactive-base bg-surface-interactive-weak": active(),
+                    "border-transparent": !active(),
+                  }}
                 >
                   {header()}
                 </div>
@@ -433,6 +448,7 @@ export const SortableWorkspace = (props: {
             hasMore={hasMore}
             loadMore={loadMore}
             language={language}
+            nested
           />
         </Collapsible.Content>
       </Collapsible>
@@ -479,6 +495,7 @@ export const LocalWorkspace = (props: {
         hasMore={hasMore}
         loadMore={loadMore}
         language={language}
+        nested={false}
       />
     </div>
   )
