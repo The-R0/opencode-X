@@ -1,6 +1,7 @@
 import type { Session } from "@opencode-ai/sdk/v2/client"
 import { Avatar } from "@opencode-ai/ui/avatar"
-import { Icon } from "@opencode-ai/ui/icon"
+import { SessionMoreMenu } from "@/components/session/session-more-menu"
+import { Icon, type IconProps } from "@opencode-ai/ui/icon"
 import { IconButton } from "@opencode-ai/ui/icon-button"
 import { Spinner } from "@opencode-ai/ui/spinner"
 import { Tooltip } from "@opencode-ai/ui/tooltip"
@@ -16,8 +17,35 @@ import { messageAgentColor } from "@/utils/agent"
 import { sessionTitle } from "@/utils/session-title"
 import { sessionPermissionRequest } from "../session/composer/session-request-tree"
 import { childSessionOnPath, hasProjectPermissions } from "./helpers"
+import type { WorkspaceSidebarContext } from "./sidebar-workspace"
 
 const OPENCODE_PROJECT_ID = "4b0ea68d7af9a6031a7ffda7ad66e0cb83315750"
+
+/** Glyph used for hierarchy sidebar project rows (shift+click project icon to cycle). */
+export const HIERARCHY_PROJECT_ICONS = ["folder", "file-tree", "folder-add-left"] as const
+export type HierarchyProjectIcon = (typeof HIERARCHY_PROJECT_ICONS)[number]
+
+const HIERARCHY_PROJECT_ICON_KEY = "opencodex.sidebar.hierarchyProjectIcon"
+
+export function readHierarchyProjectIcon(): HierarchyProjectIcon {
+  if (typeof localStorage === "undefined") return "folder"
+  const stored = localStorage.getItem(HIERARCHY_PROJECT_ICON_KEY)
+  if (stored && HIERARCHY_PROJECT_ICONS.includes(stored as HierarchyProjectIcon)) {
+    return stored as HierarchyProjectIcon
+  }
+  return "folder"
+}
+
+export function cycleHierarchyProjectIcon(current: HierarchyProjectIcon): HierarchyProjectIcon {
+  const index = HIERARCHY_PROJECT_ICONS.indexOf(current)
+  const next = HIERARCHY_PROJECT_ICONS[(index + 1) % HIERARCHY_PROJECT_ICONS.length]
+  try {
+    localStorage.setItem(HIERARCHY_PROJECT_ICON_KEY, next)
+  } catch {
+    /* ignore quota / private mode */
+  }
+  return next
+}
 
 export function getProjectAvatarSource(id?: string, icon?: { color?: string; url?: string; override?: string }) {
   if (id === OPENCODE_PROJECT_ID) return "https://opencode.ai/favicon.svg"
@@ -26,11 +54,19 @@ export function getProjectAvatarSource(id?: string, icon?: { color?: string; url
   return icon?.url
 }
 
+export type ProjectIconStyle = HierarchyProjectIcon | "avatar"
+
 export const ProjectIcon = (props: {
   project: LocalProject
   class?: string
   notify?: boolean
   working?: boolean
+  /** When set, always show this glyph instead of the project avatar. */
+  iconStyle?: ProjectIconStyle
+  iconSize?: IconProps["size"]
+  /** Plain line icon without the bordered tile (hierarchy sidebar). */
+  glyphVariant?: "boxed" | "plain"
+  onIconStyleCycle?: () => void
 }): JSX.Element => {
   const globalSync = useGlobalSync()
   const notification = useNotification()
@@ -49,31 +85,59 @@ export const ProjectIcon = (props: {
   const notify = createMemo(() => props.notify && (hasPermissions() || unseenCount() > 0))
   const name = createMemo(() => props.project.name || getFilename(props.project.worktree))
   const src = createMemo(() => getProjectAvatarSource(props.project.id, props.project.icon))
+  const glyph = createMemo(() => {
+    const style = props.iconStyle ?? "avatar"
+    return style === "avatar" ? undefined : style
+  })
+  const plainGlyph = () => props.glyphVariant === "plain"
+  const iconSize = () => props.iconSize ?? (plainGlyph() || !glyph() ? "small" : "normal")
+
+  const glyphIcon = (name: HierarchyProjectIcon) => {
+    if (plainGlyph()) {
+      return <Icon name={name} size={iconSize()} class="shrink-0 text-icon-weak" aria-hidden="true" />
+    }
+    return (
+      <div
+        class="flex size-full items-center justify-center rounded-sm border border-border-weak-base bg-surface-interactive-weak text-icon-interactive-base"
+        classList={{ "badge-mask": notify() }}
+        aria-hidden="true"
+      >
+        <Icon name={name} size={iconSize()} />
+      </div>
+    )
+  }
+
+  const rootClass = () => {
+    if (props.class) return `relative shrink-0 rounded-sm ${props.class}`
+    if (plainGlyph() && glyph()) return "relative flex size-4 shrink-0 items-center justify-center"
+    return "relative size-8 shrink-0 rounded-sm"
+  }
 
   return (
-    <div class={`relative size-8 shrink-0 rounded-sm ${props.class ?? ""}`}>
+    <div
+      class={rootClass()}
+      onClick={(event) => {
+        if (!props.onIconStyleCycle || !glyph()) return
+        if (!event.shiftKey) return
+        event.preventDefault()
+        event.stopPropagation()
+        props.onIconStyleCycle()
+      }}
+    >
       <div class="size-full overflow-clip rounded-sm">
-        <Show
-          when={src()}
-          fallback={
-            <div
-              class="flex size-full items-center justify-center rounded-sm border border-border-weak-base bg-surface-interactive-weak text-icon-interactive-base"
-              classList={{ "badge-mask": notify() }}
-              aria-hidden="true"
-            >
-              <Icon name="folder" size="small" />
-            </div>
-          }
-        >
-          {(source) => (
-            <Avatar
-              fallback={name()}
-              src={source()}
-              {...getAvatarColors(props.project.icon?.color)}
-              class="size-full rounded-sm"
-              classList={{ "badge-mask": notify() }}
-            />
-          )}
+        <Show when={glyph()}>{(name) => glyphIcon(name())}</Show>
+        <Show when={!glyph()}>
+          <Show when={src()} fallback={glyphIcon("folder")}>
+            {(source) => (
+              <Avatar
+                fallback={name()}
+                src={source()}
+                {...getAvatarColors(props.project.icon?.color)}
+                class="size-full rounded-sm"
+                classList={{ "badge-mask": notify() }}
+              />
+            )}
+          </Show>
         </Show>
       </div>
       <Show when={notify()}>
@@ -188,44 +252,68 @@ export const HierarchySessionItem = (props: {
   slug: string
   directory: string
   clearHoverProjectSoon: () => void
+  InlineEditor: WorkspaceSidebarContext["InlineEditor"]
+  openEditor: WorkspaceSidebarContext["openEditor"]
+  renameSession: (session: Session, next: string) => void
+  archiveSession: (session: Session) => Promise<void>
 }): JSX.Element => {
   const layout = useLayout()
   const notification = useNotification()
   const globalSync = useGlobalSync()
   const [store] = globalSync.child(props.directory, { bootstrap: false })
-  const title = () => sessionTitle(props.session.title)
+  const sessionEditorId = () => `session:${props.session.id}`
+  const title = createMemo(() => sessionTitle(props.session.title) ?? "")
   const isWorking = createMemo(() => store.session_working(props.session.id))
   const unseenCount = createMemo(() => notification.session.unseenCount(props.session.id))
   const hasError = createMemo(() => notification.session.unseenHasError(props.session.id))
 
   return (
-    <div class="group/session relative w-full min-w-0 rounded-md pl-1 pr-1 shadow-none transition-colors hover:bg-surface-base-hover has-[.active]:bg-surface-base-active [&:has(:focus-visible)]:bg-surface-base-hover">
+    <div class="group/session relative flex w-full min-w-0 items-center rounded-md pl-1 pr-1 shadow-none transition-colors hover:bg-surface-base-hover has-[.active]:bg-surface-base-active [&:has(:focus-visible)]:bg-surface-base-hover">
       <A
         href={`/${props.slug}/session/${props.session.id}`}
-        class="flex min-w-0 w-full items-center gap-1.5 rounded-md px-2 py-1 text-left shadow-none focus:outline-none"
+        class="flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-2 py-1 text-left shadow-none focus:outline-none"
         onClick={() => {
           if (layout.sidebar.opened()) return
           props.clearHoverProjectSoon()
         }}
       >
-        <div class="flex size-4 shrink-0 items-center justify-center">
+        <div class="relative flex size-4 shrink-0 items-center justify-center text-icon-weak">
           <Switch>
             <Match when={isWorking()}>
-              <Spinner class="size-3" />
+              <Spinner class="size-3.5" />
             </Match>
             <Match when={hasError()}>
-              <div class="size-1.5 rounded-full bg-text-diff-delete-base" />
+              <Icon name="speech-bubble" size="small" class="text-text-diff-delete-base" />
             </Match>
             <Match when={unseenCount() > 0}>
-              <div class="size-1.5 rounded-full bg-text-interactive-base" />
+              <Icon name="speech-bubble" size="small" />
             </Match>
             <Match when={true}>
-              <div class="size-1.5 rounded-full bg-text-weaker" />
+              <Icon name="speech-bubble" size="small" />
             </Match>
           </Switch>
+          <Show when={unseenCount() > 0 && !isWorking() && !hasError()}>
+            <span class="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-text-interactive-base" />
+          </Show>
         </div>
-        <span class="min-w-0 flex-1 truncate text-13-regular text-text-strong">{title()}</span>
+          <props.InlineEditor
+            id={sessionEditorId()}
+            value={title}
+            onSave={(next) => {
+              void props.renameSession(props.session, next)
+            }}
+            class="min-w-0 flex-1 truncate text-12-regular text-text-base"
+            displayClass="min-w-0 flex-1 truncate text-12-regular text-text-base"
+            openOnDblClick={false}
+            stopPropagation
+          />
       </A>
+      <SessionMoreMenu
+        session={props.session}
+        openEditor={props.openEditor}
+        renameSession={props.renameSession}
+        archiveSession={props.archiveSession}
+      />
     </div>
   )
 }

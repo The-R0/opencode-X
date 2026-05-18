@@ -88,6 +88,7 @@ import {
 import { ProjectDragOverlay, SortableProject, type ProjectSidebarContext } from "./layout/sidebar-project"
 import { SidebarContent } from "./layout/sidebar-shell"
 import type { SidebarHierarchyContext } from "./layout/sidebar-hierarchy"
+import { sessionTitle } from "@/utils/session-title"
 
 export default function Layout(props: ParentProps) {
   const [store, setStore, , ready] = persisted(
@@ -992,6 +993,26 @@ export default function Layout(props: ParentProps) {
       navigateToSession(session)
       return
     }
+  }
+
+  async function renameSession(session: Session, next: string) {
+    const title = next.trim()
+    if (!title) return
+    const current = sessionTitle(session.title)
+    if (title === current) return
+
+    await globalSDK.client.session.update({
+      directory: session.directory,
+      sessionID: session.id,
+      title,
+    })
+    const [, setStore] = globalSync.child(session.directory)
+    setStore(
+      produce((draft) => {
+        const match = Binary.search(draft.session, session.id, (s) => s.id)
+        if (match.found) draft.session[match.index].title = title
+      }),
+    )
   }
 
   async function archiveSession(session: Session) {
@@ -2358,6 +2379,11 @@ export default function Layout(props: ParentProps) {
     navigateToProject: (directory) => {
       void navigateToProject(directory)
     },
+    InlineEditor,
+    openEditor,
+    renameProject,
+    renameSession,
+    clearHoverProjectSoon,
   }
   const sidebarContent = (mobile?: boolean) => (
     <SidebarContent
