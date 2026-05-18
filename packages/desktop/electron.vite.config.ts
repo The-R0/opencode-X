@@ -5,7 +5,7 @@ import * as fs from "node:fs/promises"
 
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
-  if (raw === "dev" || raw === "beta" || raw === "prod") return raw
+  if (raw === "dev" || raw === "beta" || raw === "prod" || raw === "opencodex") return raw
   return "dev"
 })()
 
@@ -79,6 +79,10 @@ export default defineConfig({
     },
   },
   renderer: {
+    server: {
+      port: 5173,
+      strictPort: true,
+    },
     plugins: [appPlugin, sentry],
     publicDir: "../../../app/public",
     root: "src/renderer",

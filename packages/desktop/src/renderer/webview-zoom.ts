@@ -33,6 +33,14 @@ const applyZoom = (next: number) => {
     })
 }
 
+if (typeof window !== "undefined" && window.api?.getZoomFactor) {
+  void window.api.getZoomFactor().then((factor) => {
+    if (typeof factor !== "number" || factor <= 0) return
+    requestedZoom = factor
+    setWebviewZoom(factor)
+  })
+}
+
 window.addEventListener("keydown", (event) => {
   if (!(OS_NAME === "macos" ? event.metaKey : event.ctrlKey)) return
 

@@ -2,7 +2,8 @@ import { $ } from "bun"
 import { resolveChannel } from "./utils"
 
 const arg = process.argv[2]
-const channel = arg === "dev" || arg === "beta" || arg === "prod" ? arg : resolveChannel()
+const resolved = arg === "dev" || arg === "beta" || arg === "prod" || arg === "opencodex" ? arg : resolveChannel()
+const channel = resolved === "opencodex" ? "prod" : resolved
 
 const src = `./icons/${channel}`
 const dest = "resources/icons"

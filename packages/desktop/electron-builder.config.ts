@@ -22,14 +22,14 @@ async function signWindows(configuration: { path: string }) {
 
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
-  if (raw === "dev" || raw === "beta" || raw === "prod") return raw
+  if (raw === "dev" || raw === "beta" || raw === "prod" || raw === "opencodex") return raw
   return "dev"
 })()
 
 const getBase = (): Configuration => ({
   artifactName: "opencode-desktop-${os}-${arch}.${ext}",
   directories: {
-    output: "dist",
+    output: process.env.DESKTOP_BUILD_OUTPUT ?? "dist",
     buildResources: "resources",
   },
   files: ["out/**/*", "resources/**/*"],
@@ -59,11 +59,16 @@ const getBase = (): Configuration => ({
   },
   win: {
     icon: `resources/icons/icon.ico`,
-    signtoolOptions: {
-      sign: signWindows,
-    },
     target: ["nsis"],
     verifyUpdateCodeSignature: false,
+    // Local builds: skip winCodeSign extraction (needs symlink privilege on Windows).
+    ...(process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false"
+      ? { signAndEditExecutable: false }
+      : {
+          signtoolOptions: {
+            sign: signWindows,
+          },
+        }),
   },
   nsis: {
     oneClick: true,
@@ -107,6 +112,18 @@ function getConfig() {
         productName: "OpenCode",
         protocols: { name: "OpenCode", schemes: ["opencode"] },
         publish: { provider: "github", owner: "anomalyco", repo: "opencode", channel: "latest" },
+        rpm: { packageName: "opencode" },
+      }
+    }
+    case "opencodex": {
+      return {
+        ...base,
+        // Same identity as official desktop — shares %APPDATA%\ai.opencode.desktop\ and opencode engine config.
+        appId: "ai.opencode.desktop",
+        productName: "OpenCode",
+        artifactName: "opencodex-desktop-${os}-${arch}.${ext}",
+        protocols: { name: "OpenCode", schemes: ["opencode"] },
+        publish: { provider: "github", owner: "The-R0", repo: "Opencodex" },
         rpm: { packageName: "opencode" },
       }
     }

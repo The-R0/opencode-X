@@ -1,5 +1,6 @@
 import windowState from "electron-window-state"
 import { app, BrowserWindow, net, nativeImage, nativeTheme, protocol } from "electron"
+import { existsSync } from "node:fs"
 import { dirname, isAbsolute, join, relative, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import type { TitlebarTheme } from "../preload/types"
@@ -24,6 +25,11 @@ protocol.registerSchemesAsPrivileged([
 let backgroundColor: string | undefined
 const titlebarThemes = new WeakMap<BrowserWindow, Partial<TitlebarTheme>>()
 const titlebarHeight = 40
+const WINDOW_STATE_FILE = "window-state.json"
+const MIN_WINDOW_WIDTH = 1024
+const MIN_WINDOW_HEIGHT = 640
+const DEFAULT_WINDOW_WIDTH = 1280
+const DEFAULT_WINDOW_HEIGHT = 800
 
 export function setBackgroundColor(color: string) {
   backgroundColor = color
@@ -72,17 +78,27 @@ export function setDockIcon() {
 }
 
 export function createMainWindow() {
+  const statePath = join(app.getPath("userData"), WINDOW_STATE_FILE)
+  const hasSavedState = existsSync(statePath)
+
   const state = windowState({
-    defaultWidth: 1280,
-    defaultHeight: 800,
+    defaultWidth: DEFAULT_WINDOW_WIDTH,
+    defaultHeight: DEFAULT_WINDOW_HEIGHT,
+    file: WINDOW_STATE_FILE,
   })
+
+  const width = Math.max(state.width, MIN_WINDOW_WIDTH)
+  const height = Math.max(state.height, MIN_WINDOW_HEIGHT)
+  const undersized = state.width < MIN_WINDOW_WIDTH || state.height < MIN_WINDOW_HEIGHT
 
   const mode = tone()
   const win = new BrowserWindow({
     x: state.x,
     y: state.y,
-    width: state.width,
-    height: state.height,
+    width,
+    height,
+    minWidth: MIN_WINDOW_WIDTH,
+    minHeight: MIN_WINDOW_HEIGHT,
     show: false,
     autoHideMenuBar: true,
     title: "OpenCode",
@@ -129,6 +145,9 @@ export function createMainWindow() {
   wireZoom(win)
 
   win.once("ready-to-show", () => {
+    if (!hasSavedState || undersized) {
+      win.maximize()
+    }
     win.show()
   })
 
