@@ -61,6 +61,33 @@ export const SidebarContent = (props: {
       </Show>
       <Show when={hierarchyMode()}>
         <SidebarHierarchy hierarchy={props.hierarchy!} mobile={props.mobile} />
+        <div
+          data-component="sidebar-open-project"
+          class="shrink-0 border-t border-border-weaker-base px-2 py-2"
+        >
+          <Tooltip
+            placement={placement()}
+            value={
+              <div class="flex items-center gap-2">
+                <span>{props.openProjectLabel}</span>
+                <Show when={!props.mobile && !!props.openProjectKeybind()}>
+                  <span class="text-icon-base text-12-medium">{props.openProjectKeybind()}</span>
+                </Show>
+              </div>
+            }
+          >
+            <Button
+              icon="folder-add-left"
+              variant="ghost"
+              size="small"
+              class="w-full justify-center gap-1.5 rounded-md text-13-regular text-text-weak hover:bg-surface-base-hover hover:text-text-base"
+              onClick={props.onOpenProject}
+              aria-label={typeof props.openProjectLabel === "string" ? props.openProjectLabel : undefined}
+            >
+              <span class="truncate">{props.openProjectLabel}</span>
+            </Button>
+          </Tooltip>
+        </div>
       </Show>
 
       <Show when={!hierarchyMode()}>
@@ -124,10 +151,13 @@ export const SidebarContent = (props: {
 
       <div
         data-component="sidebar-footer"
-        class="shrink-0 border-t border-border-weaker-base bg-background-stronger px-3 py-3"
+        class="shrink-0 border-t border-border-weaker-base bg-background-stronger px-3 py-2"
         classList={{ "mt-auto": hierarchyMode() }}
       >
-        <div class="flex items-center gap-1">
+        <div
+          class="flex items-center gap-1"
+          classList={{ "justify-center": hierarchyMode() }}
+        >
           <TooltipKeybind placement={placement()} title={props.settingsLabel()} keybind={props.settingsKeybind() ?? ""}>
             <IconButton
               icon="settings-gear"
