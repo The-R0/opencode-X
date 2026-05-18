@@ -11,6 +11,8 @@ node_modules
 playground
 tmp
 dist
+packages/desktop/dist-build-*/
+packages/desktop/dist-package/
 ts-dist
 .turbo
 **/.serena

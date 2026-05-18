@@ -3,6 +3,7 @@ import {
   createEffect,
   createMemo,
   createResource,
+  createSignal,
   For,
   on,
   onCleanup,
@@ -106,6 +107,7 @@ export default function Layout(props: ParentProps) {
   )
 
   const pageReady = createMemo(() => ready())
+  const [debugBarVisible, setDebugBarVisible] = createSignal(false)
 
   let scrollContainerRef: HTMLDivElement | undefined
   let dialogRun = 0
@@ -118,6 +120,19 @@ export default function Layout(props: ParentProps) {
   const layoutReady = createMemo(() => layout.ready())
   const platform = usePlatform()
   const settings = useSettings()
+
+  onMount(() => {
+    if (!import.meta.env.DEV) return
+
+    makeEventListener(document, "keydown", (event) => {
+      if (event.repeat) return
+      if (event.altKey) return
+      if (!(event.ctrlKey || event.metaKey) || !event.shiftKey) return
+      if (event.key.toLowerCase() !== "d") return
+      event.preventDefault()
+      setDebugBarVisible((value) => !value)
+    })
+  })
   const server = useServer()
   const notification = useNotification()
   const permission = usePermission()
@@ -2561,7 +2576,7 @@ export default function Layout(props: ParentProps) {
             </div>
           </div>
         </div>
-        {import.meta.env.DEV && <DebugBar />}
+        {import.meta.env.DEV && debugBarVisible() && <DebugBar />}
       </div>
       <Toast.Region />
     </div>
