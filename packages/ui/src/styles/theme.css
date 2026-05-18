@@ -5,18 +5,18 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-family-mono--font-feature-settings: normal;
 
-  --font-size-small: 13px;
-  --font-size-base: 14px;
-  --font-size-large: 16px;
-  --font-size-x-large: 20px;
+  --font-size-small: 12px;
+  --font-size-base: 13px;
+  --font-size-large: 14px;
+  --font-size-x-large: 18px;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
-  --line-height-normal: 130%;
-  --line-height-large: 150%;
-  --line-height-x-large: 180%;
+  --line-height-normal: 125%;
+  --line-height-large: 140%;
+  --line-height-x-large: 155%;
   --line-height-2x-large: 200%;
   --letter-spacing-normal: 0;
-  --letter-spacing-tight: -0.1599999964237213;
+  --letter-spacing-tight: -0.011em;
   --letter-spacing-tightest: -0.3199999928474426;
   --paragraph-spacing-base: 0;
 
@@ -322,7 +322,7 @@
   --markdown-text: #1a1a1a;
   --markdown-link: #3b7dd8;
   --markdown-link-text: #318795;
-  --markdown-code: #3d9a57;
+  --markdown-code: #1a1a1a;
   --markdown-block-quote: #b0851f;
   --markdown-emph: #b0851f;
   --markdown-strong: #d68c27;
@@ -582,7 +582,7 @@
     --markdown-text: #eeeeee;
     --markdown-link: #fab283;
     --markdown-link-text: #56b6c2;
-    --markdown-code: #7fd88f;
+    --markdown-code: #eeeeee;
     --markdown-block-quote: #e5c07b;
     --markdown-emph: #e5c07b;
     --markdown-strong: #f5a742;
