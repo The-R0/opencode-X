@@ -4,7 +4,7 @@
   <strong>English</strong> · <a href="README.zh.md">简体中文</a>
 </p>
 
-Unofficial fork of [opencode](https://github.com/anomalyco/opencode) focused on reshaping the desktop UI into a clearer project workspace.
+Opencodex is still essentially [opencode](https://github.com/anomalyco/opencode), with the desktop UI reorganized for clarity. You can still use free models, and your existing API settings, model configuration, and overall workflow stay the same.
 
 ## UI differences from official OpenCode
 

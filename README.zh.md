@@ -4,7 +4,7 @@
   <a href="README.md">English</a> · <strong>简体中文</strong>
 </p>
 
-[opencode](https://github.com/anomalyco/opencode) 的非官方分支，主要在桌面端 UI 上做信息结构和交互整理，让项目、会话、路径之间的关系更直观。
+Opencodex 本质上仍然是 [opencode](https://github.com/anomalyco/opencode)，只是把桌面端 UI 重新整理得更清晰。免费模型照样能用，现有的 API 配置、模型配置和整体使用方式也不会改变。
 
 ## 当前 UI 和官方 OpenCode 的区别
 
