@@ -6,6 +6,8 @@
 
 Opencodex 本质上仍然是 [opencode](https://github.com/anomalyco/opencode)，只是把桌面端 UI 重新整理得更清晰。免费模型照样能用，现有的 API 配置、模型配置和整体使用方式也不会改变。
 
+桌面端发布版本：[v0.1.0](https://github.com/The-R0/opencode-X/releases/tag/v0.1.0)
+
 ## 当前 UI 和官方 OpenCode 的区别
 
 ### 主界面

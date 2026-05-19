@@ -6,6 +6,8 @@
 
 Opencodex is still essentially [opencode](https://github.com/anomalyco/opencode), with the desktop UI reorganized for clarity. You can still use free models, and your existing API settings, model configuration, and overall workflow stay the same.
 
+Desktop release: [v0.1.0](https://github.com/The-R0/opencode-X/releases/tag/v0.1.0)
+
 ## UI differences from official OpenCode
 
 ### Main UI
