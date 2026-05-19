@@ -16,7 +16,7 @@ Unofficial fork of [opencode](https://github.com/anomalyco/opencode) focused on 
 
 <img src="./assets/readme/sidebar-before.png" alt="Official OpenCode sidebar with a vertical project avatar rail and the selected project panel." width="260">
 
-In the original layout, it is hard to tell what the different C and K letters are supposed to mean at a glance. The project rail looks distinctive, but the information scent is weak.
+In the original layout, it is hard to tell what the different C and K letters are supposed to mean at a glance.
 
 <img src="./assets/readme/sidebar-after.png" alt="Current Opencodex sidebar with search, project tree, fixed open-project action, and bottom tools." width="320">
 
@@ -30,11 +30,23 @@ Opencodex turns that area into a proper project tree: projects read like blocks,
 
 The toolbar is simplified so project access and session actions feel less scattered.
 
-### Session menu placement
+### Session actions
+
+<img src="./assets/readme/屏幕截图 2026-05-19 094658.jpg" alt="Official OpenCode session menu floating in the top-right area with rename and delete actions." width="180">
+
+Putting rename and delete for a session in the top-right corner of the session box is awkward. Those actions belong beside the session they act on, not detached from it.
 
 <img src="./assets/readme/session-menu-after.jpg" alt="Current Opencodex project tree with a nested session row and row-level more menu." width="300">
 
-The session menu moves from the old top-right area to the right side of the session row in the left sidebar. Path-related actions feel more direct because they now live beside the session they affect.
+Opencodex moves that menu to the right side of the session row in the left sidebar, so path-related actions feel tied to the correct item instead of floating elsewhere in the page.
+
+### Plan placement
+
+| Official OpenCode | Current Opencodex |
+|-------------------|-------------------|
+| <img src="./assets/readme/屏幕截图 2026-05-19 095838.jpg" alt="Official OpenCode plan block taking over the center input area." width="420"> | <img src="./assets/readme/屏幕截图 2026-05-19 103109.jpg" alt="Current Opencodex progress panel moved to a smaller area on the right side." width="320"> |
+
+The old centered PLAN block is visually loud and gets in the way of the main conversation. Opencodex moves progress into a quieter right-side area so the chat stays primary.
 
 ### Message styling
 
@@ -54,6 +66,7 @@ File paths and inline code no longer jump out in green. They use a softer gray e
 - Project headers become clearer blocks with chevron, folder glyph, and inline rename.
 - Open project stays outside the scroll list instead of getting buried.
 - Session actions live next to the session row instead of farther away in the top area.
+- Progress no longer sits in the middle of the composer area.
 - User and model turns have clearer visual markers.
 - File paths and inline code shift from green emphasis to a softer gray shadowed tone.
 - Overall spacing, borders, and reading density move closer to a calmer Codex-like workspace.
@@ -70,4 +83,4 @@ Experimental personal fork; expect fast iteration. Feedback welcome via [Issues]
 
 ## License
 
-MIT, same as opencode — see [LICENSE](./LICENSE).
+MIT, same as opencode; see [LICENSE](./LICENSE).
