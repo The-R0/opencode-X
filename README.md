@@ -36,7 +36,7 @@ The toolbar is simplified so project access and session actions feel less scatte
 
 <img src="./assets/readme/屏幕截图 2026-05-19 094658.jpg" alt="Official OpenCode session menu floating in the top-right area with rename and delete actions." width="180">
 
-Putting rename and delete for a session in the top-right corner of the session box is awkward. Those actions belong beside the session they act on, not detached from it.
+"Positioning the 'Rename' and 'Delete' actions in the top-right corner of the session box creates a disjointed user experience
 
 <img src="./assets/readme/session-menu-after.jpg" alt="Current Opencodex project tree with a nested session row and row-level more menu." width="300">
 
