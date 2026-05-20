@@ -36,8 +36,7 @@ Opencodex 本质上仍然是 [opencode](https://github.com/anomalyco/opencode)�
 
 <img src="./assets/readme/屏幕截图 2026-05-19 094658.jpg" alt="官方 OpenCode 会话菜单：重命名、分享、归档、删除都放在会话框右上角。" width="180">
 
-谁家好人会把对于会话的重命名和删除放在会话框的右上角。操作对象明明是某一条会话，却被放到了一个脱离上下文的位置。
-
+原本会话的重命名和删除放在会话框的右上角。
 <img src="./assets/readme/session-menu-after.jpg" alt="当前 Opencodex 项目树：会话嵌套在项目下方，行尾更多菜单可直接操作会话。" width="300">
 
 现在把这个菜单移到左侧边栏会话行的右侧，路径操作和会话操作都更清晰，也更符合“对哪一项操作，就把入口放在哪一项旁边”。
