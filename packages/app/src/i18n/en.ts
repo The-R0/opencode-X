@@ -416,6 +416,7 @@ export const dict = {
   "language.no": "Norsk",
   "language.br": "Português (Brasil)",
   "language.bs": "Bosanski",
+  "language.uk": "Українська",
   "language.th": "ไทย",
   "language.tr": "Türkçe",
 
@@ -469,6 +470,7 @@ export const dict = {
   "error.page.action.restart": "Restart",
   "error.page.action.report": "Report Error",
   "error.page.action.reported": "Error Reported",
+  "error.page.action.exportLogs": "Export Logs",
   "error.page.action.checking": "Checking...",
   "error.page.action.checkUpdates": "Check for updates",
   "error.page.action.updateTo": "Update to {{version}}",

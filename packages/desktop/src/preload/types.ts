@@ -1,3 +1,5 @@
+import type { DesktopMenuAction } from "@opencode-ai/app/desktop-menu"
+
 export type InitStep = { phase: "server_waiting" } | { phase: "sqlite_waiting" } | { phase: "done" }
 
 export type ServerReadyData = {
@@ -14,9 +16,16 @@ export type LinuxDisplayBackend = "wayland" | "auto"
 export type TitlebarTheme = {
   mode: "light" | "dark"
 }
-
 export type WindowConfig = {
   updaterEnabled: boolean
+}
+
+export type FatalRendererError = {
+  error: string
+  url: string
+  version?: string
+  platform: string
+  os?: string
 }
 
 export type ElectronAPI = {
@@ -71,9 +80,12 @@ export type ElectronAPI = {
   getZoomFactor: () => Promise<number>
   setZoomFactor: (factor: number) => Promise<void>
   setTitlebar: (theme: TitlebarTheme) => Promise<void>
+  runDesktopMenuAction: (action: DesktopMenuAction) => Promise<void>
   loadingWindowComplete: () => void
   runUpdater: (alertOnFail: boolean) => Promise<void>
   checkUpdate: () => Promise<{ updateAvailable: boolean; version?: string }>
   installUpdate: () => Promise<void>
   setBackgroundColor: (color: string) => Promise<void>
+  exportDebugLogs: () => Promise<string>
+  recordFatalRendererError: (error: FatalRendererError) => Promise<void>
 }
