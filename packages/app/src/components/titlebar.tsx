@@ -384,7 +384,7 @@ export function Titlebar() {
               </Show>
               <div class="flex items-center gap-1 shrink-0">
                 <TooltipKeybind
-                  class={web() ? "hidden xl:flex shrink-0 ml-14" : "hidden xl:flex shrink-0 ml-2"}
+                  class={web() ? "hidden lg:flex shrink-0 ml-14" : "hidden lg:flex shrink-0 ml-2"}
                   placement="bottom"
                   title={language.t("command.sidebar.toggle")}
                   keybind={command.keybind("sidebar.toggle")}
@@ -399,7 +399,7 @@ export function Titlebar() {
                     <Icon size="small" name={layout.sidebar.opened() ? "sidebar-active" : "sidebar"} />
                   </Button>
                 </TooltipKeybind>
-                <div class="hidden xl:flex items-center shrink-0">
+                <div class="hidden lg:flex items-center shrink-0">
                   <Show when={params.dir}>
                     <div
                       class="flex items-center shrink-0 w-8 mr-1"
