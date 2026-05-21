@@ -523,6 +523,7 @@ export const dict = {
   "session.context.addToContext": "将 {{selection}} 添加到上下文",
   "session.todo.title": "待办事项",
   "session.plan.title": "进度",
+  "session.plan.hide": "隐藏进度",
   "session.todo.collapse": "折叠",
   "session.todo.expand": "展开",
   "session.followupDock.summary.one": "{{count}} 条排队消息",

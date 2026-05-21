@@ -404,6 +404,19 @@ export default function Page() {
   const desktopReviewOpen = createMemo(() => isDesktop() && view().reviewPanel.opened())
   const desktopFileTreeOpen = createMemo(() => isDesktop() && layout.fileTree.opened())
   const desktopSidePanelOpen = createMemo(() => desktopReviewOpen() || desktopFileTreeOpen())
+  const planPanelHidden = createMemo(
+    () => !isDesktop() || desktopSidePanelOpen() || view().planPanelDismissed.get(),
+  )
+
+  createEffect(
+    on(
+      () => composer.todos().length,
+      (count, prev) => {
+        if (count > 0 && (prev === undefined || prev === 0)) view().planPanelDismissed.set(false)
+      },
+    ),
+  )
+
   const sessionPanelWidth = createMemo(() => {
     if (!desktopSidePanelOpen()) return "100%"
     if (desktopReviewOpen()) return `${layout.session.width()}px`
@@ -1833,7 +1846,11 @@ export default function Page() {
             <Switch>
               <Match when={params.id}>
                 <Show when={messagesReady()}>
-                  <SessionPlanPanel todos={composer.todos()} hidden={!isDesktop() || desktopSidePanelOpen()} />
+                  <SessionPlanPanel
+                    todos={composer.todos()}
+                    hidden={planPanelHidden()}
+                    onDismiss={() => view().planPanelDismissed.set(true)}
+                  />
                   <MessageTimeline
                     mobileChanges={mobileChanges()}
                     mobileFallback={reviewContent({

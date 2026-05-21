@@ -3,9 +3,13 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { promisify } from "node:util"
 
-import type { Configuration } from "electron-builder"
+import type { AfterPackContext, Configuration } from "electron-builder"
+
+import { embedWinExeIcon } from "./scripts/embed-win-exe-icon.ts"
 
 const execFileAsync = promisify(execFile)
+const localUnsignedWin =
+  process.platform === "win32" && process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false"
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const signScript = path.join(rootDir, "script", "sign-windows.ps1")
 
@@ -26,7 +30,17 @@ const channel = (() => {
   return "dev"
 })()
 
+async function afterPack(context: AfterPackContext) {
+  if (!localUnsignedWin) return
+  await embedWinExeIcon(
+    context.appOutDir,
+    context.packager.appInfo.productFilename,
+    context.packager.projectDir,
+  )
+}
+
 const getBase = (): Configuration => ({
+  afterPack,
   artifactName: "opencode-desktop-${os}-${arch}.${ext}",
   directories: {
     output: process.env.DESKTOP_BUILD_OUTPUT ?? "dist",
@@ -61,14 +75,17 @@ const getBase = (): Configuration => ({
     icon: `resources/icons/icon.ico`,
     target: ["nsis"],
     verifyUpdateCodeSignature: false,
-    // Local builds: skip winCodeSign extraction (needs symlink privilege on Windows).
-    ...(process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false"
+    // Local unsigned: skip winCodeSign (symlink extraction fails without Developer Mode).
+    // Icon is embedded in afterPack via @electron/rcedit instead.
+    ...(localUnsignedWin
       ? { signAndEditExecutable: false }
-      : {
-          signtoolOptions: {
-            sign: signWindows,
-          },
-        }),
+      : process.env.GITHUB_ACTIONS === "true"
+        ? {
+            signtoolOptions: {
+              sign: signWindows,
+            },
+          }
+        : {}),
   },
   nsis: {
     oneClick: true,

@@ -4,7 +4,7 @@ import { join } from "node:path"
 const desktopRoot = join(import.meta.dir, "..")
 
 process.env.OPENCODE_CHANNEL = "opencodex"
-// Local Windows builds: skip code signing (avoids winCodeSign symlink extraction without admin).
+// Local Windows builds: skip Authenticode signing (no cert). Icon embedding still runs via rcedit.
 process.env.CSC_IDENTITY_AUTO_DISCOVERY = "false"
 
 await $`bun ./scripts/copy-icons.ts prod`.cwd(desktopRoot)

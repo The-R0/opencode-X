@@ -44,6 +44,7 @@ type SessionView = {
   pendingMessage?: string
   pendingMessageAt?: number
   todoCollapsed?: boolean
+  planPanelDismissed?: boolean
 }
 
 type TabHandoff = {
@@ -769,6 +770,18 @@ export const { use: useLayout, provider: LayoutProvider } = createSimpleContext(
                 setStore("sessionView", session, { scroll: {}, todoCollapsed: collapsed })
               } else {
                 setStore("sessionView", session, "todoCollapsed", collapsed)
+              }
+            },
+          },
+          planPanelDismissed: {
+            get: () => s().planPanelDismissed ?? false,
+            set(dismissed: boolean) {
+              const session = key()
+              const current = store.sessionView[session]
+              if (!current) {
+                setStore("sessionView", session, { scroll: {}, planPanelDismissed: dismissed })
+              } else {
+                setStore("sessionView", session, "planPanelDismissed", dismissed)
               }
             },
           },
